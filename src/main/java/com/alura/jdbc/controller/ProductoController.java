@@ -11,11 +11,22 @@ import java.util.Map;
 
 public class ProductoController {
 
-	public void modificar(String name, String descripcion, Integer id, Integer stock) throws SQLException {
-		// TODO
-		Connection con = new ConnectionFactory().recuperaConexion();
-		Statement statment = con.createStatement();
+	public int modificar(String name, String descripcion, Integer id, Integer stock) throws SQLException {
+		ConnectionFactory factory = new ConnectionFactory();
+		Connection con = factory.recuperaConexion();
 
+		Statement statement = con.createStatement();
+
+		statement.execute("UPDATE PRODUCTO SET NAME='"+name+"'"+
+				",DESCRIPTION='"+descripcion+"'"+
+				",STOCK="+stock
+				+" WHERE ID ="+id);
+
+		int updateCount = statement.getUpdateCount();
+
+		con.close();
+
+		return updateCount;
 	}
 
 	public int eliminar(Integer id) throws SQLException {
