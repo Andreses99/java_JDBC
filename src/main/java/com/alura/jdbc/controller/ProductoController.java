@@ -11,17 +11,22 @@ import java.util.Map;
 
 public class ProductoController {
 
-	public int modificar(String name, String descripcion, Integer id, Integer stock) throws SQLException {
+	public int modificar(String name, String descripcion,Integer stock,Integer id) throws SQLException {
 		ConnectionFactory factory = new ConnectionFactory();
 		Connection con = factory.recuperaConexion();
 
-		Statement statement = con.createStatement();
+		PreparedStatement statement = con.prepareStatement("UPDATE PRODUCTO SET");
 
-		statement.execute("UPDATE PRODUCTO SET NAME='"+name+"'"+
-				",DESCRIPTION='"+descripcion+"'"+
-				",STOCK="+stock
-				+" WHERE ID ="+id);
+		statement.execute("UPDATE PRODUCTO SET NAME=?"+
+				",DESCRIPTION=?"+
+				",STOCK=?"+
+				" WHERE ID =?");
+		statement.setString(1,name);
+		statement.setString(2,descripcion);
+		statement.setInt(3,stock);
+		statement.setInt(4,id);
 
+		statement.execute();
 		int updateCount = statement.getUpdateCount();
 
 		con.close();
@@ -32,8 +37,9 @@ public class ProductoController {
 	public int eliminar(Integer id) throws SQLException {
 		// TODO
 		Connection con = new ConnectionFactory().recuperaConexion();
-		Statement statement = con.createStatement();
-		statement.execute("DELETE FROM PRODUCTO WHERE ID= "+id);
+		PreparedStatement statement = con.prepareStatement("DELETE FROM PRODUCTO WHERE ID= ?");
+		statement.setInt(1,id);
+		statement.execute();
 		//la siguiente funcion nos dara un retorno de un valor entero de las filas q fueron modificadas
 		return statement.getUpdateCount();
 	}
@@ -43,9 +49,9 @@ public class ProductoController {
 		// primero pasamos a cargar la conexion con la base de datos
 		Connection con = new ConnectionFactory().recuperaConexion();
 		// crearemos los statement que son los q nos permiten crear consultas con la bases de datos
-		Statement statement = con.createStatement();
+		PreparedStatement statement = con.prepareStatement("SELECT ID, NAME, DESCRIPTION, STOCK FROM PRODUCTO");
 		// aca usamos execute para poder ejecutar la consulta de mostrar lo que hay en la tabla para poder visualizarla
-		statement.execute("SELECT ID, NAME, DESCRIPTION, STOCK FROM PRODUCTO");
+		statement.execute();
 		ResultSet resultSet = statement.getResultSet();
 
 		List<Map<String, String>> resultado=new ArrayList<>();
@@ -70,12 +76,15 @@ public class ProductoController {
     public void guardar(Map<String, String> producto) throws SQLException {
 
 		Connection con = new ConnectionFactory().recuperaConexion();
-		Statement statement= con.createStatement();
-		statement.execute("INSERT INTO PRODUCTO (name, description, stock)"
-						+"VALUES('"+ producto.get("NAME")+"','"
-				+producto.get("DESCRIPTION")+"',"
-				+producto.get("STOCK")+")",
-				Statement.RETURN_GENERATED_KEYS);
+		//preparamos el statement
+		// y pasamos los ??? como los argumentos que se van a obtner para name, description y el stock
+		PreparedStatement statement= con.prepareStatement("INSERT INTO PRODUCTO (name, description, stock)"
+				+"VALUES(?,?,?)",Statement.RETURN_GENERATED_KEYS);
+		statement.setString(1,producto.get("NAME"));
+		statement.setString(2,producto.get("DESCRIPTION"));
+		statement.setInt(3,Integer.valueOf(producto.get("STOCK")));
+
+		statement.execute();
 
 		ResultSet resultSet= statement.getGeneratedKeys();
 		while (resultSet.next()){
