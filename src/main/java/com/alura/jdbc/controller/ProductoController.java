@@ -80,9 +80,23 @@ public class ProductoController {
 		// y pasamos los ??? como los argumentos que se van a obtner para name, description y el stock
 		PreparedStatement statement= con.prepareStatement("INSERT INTO PRODUCTO (name, description, stock)"
 				+"VALUES(?,?,?)",Statement.RETURN_GENERATED_KEYS);
-		statement.setString(1,producto.get("NAME"));
-		statement.setString(2,producto.get("DESCRIPTION"));
-		statement.setInt(3,Integer.valueOf(producto.get("STOCK")));
+		String nombre=producto.get("NAME");
+		String description=producto.get("DESCRIPTION");
+		Integer stock=Integer.valueOf(producto.get("STOCK"));
+		Integer maxStock=50;
+		do {
+			int cant=Math.min(stock,maxStock);
+			ejecutarRegistro(statement, nombre, description, cant);
+			stock -=maxStock;
+		}while (stock>0);
+
+
+	}
+
+	private static void ejecutarRegistro(PreparedStatement statement, String nombre, String description, Integer stock) throws SQLException {
+		statement.setString(1, nombre);
+		statement.setString(2, description);
+		statement.setInt(3, stock);
 
 		statement.execute();
 
@@ -91,7 +105,6 @@ public class ProductoController {
 			System.out.println(
 					String.format("Fue insertado el producto id %d", resultSet.getInt(1)));
 		}
-
 	}
 
 }
