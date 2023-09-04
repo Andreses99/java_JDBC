@@ -10,7 +10,7 @@ public class PruebaPoolConexion {
         ConnectionFactory conectionfactory=new ConnectionFactory();
 
         for (int i=0; i<20;i++){
-            Connection connection = conectionfactory.recuperaConexion();
+            conectionfactory.recuperaConexion();
             System.out.println("abriendo conexion N-"+(i+1));
 
         }

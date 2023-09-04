@@ -19,6 +19,8 @@ import javax.swing.table.DefaultTableModel;
 
 import com.alura.jdbc.controller.CategoriaController;
 import com.alura.jdbc.controller.ProductoController;
+import com.alura.jdbc.modelo.Categoria;
+import com.alura.jdbc.modelo.Producto;
 
 public class ControlDeStockFrame extends JFrame {
 
@@ -102,7 +104,7 @@ public class ControlDeStockFrame extends JFrame {
 
         // TODO
         var categorias = this.categoriaController.listar();
-        // categorias.forEach(categoria -> comboCategoria.addItem(categoria));
+         categorias.forEach(categoria -> comboCategoria.addItem(categoria));
 
         textoNombre.setBounds(10, 25, 265, 20);
         textoDescripcion.setBounds(10, 65, 265, 20);
@@ -185,17 +187,13 @@ public class ControlDeStockFrame extends JFrame {
         Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
                 .ifPresentOrElse(fila -> {
                     Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
-                    String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
-                    String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
+                    String name = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
+                    String description = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
                     Integer stock = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(),3).toString());
 
                     int filasModi;
 
-                    try {
-                        filasModi=this.productoController.modificar(nombre, descripcion, id, stock);
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
+                    filasModi=this.productoController.modificar(name, description, stock, id);
                     JOptionPane.showMessageDialog(this, String.format("%d item modificado con éxito!", filasModi));
                 }, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
     }
@@ -210,11 +208,7 @@ public class ControlDeStockFrame extends JFrame {
                 .ifPresentOrElse(fila -> {
                     Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
                     int countDrop;
-                    try {
-                        countDrop=this.productoController.eliminar(id);
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
+                    countDrop=this.productoController.eliminar(id);
 
                     modelo.removeRow(tabla.getSelectedRow());
 
@@ -223,18 +217,12 @@ public class ControlDeStockFrame extends JFrame {
     }
 
     private void cargarTabla() {
-        try {
             var productos = this.productoController.listar();
-            try {
+
                 // TODO
-                 productos.forEach(producto -> modelo.addRow(new Object[] { producto.get("ID"),
-                         producto.get("NAME"),producto.get("DESCRIPTION"), producto.get("STOCK") }));
-            } catch (Exception e) {
-                throw e;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+                 productos.forEach(producto -> modelo.addRow(new Object[] { producto.getId(),
+                         producto.getName(),producto.getDescription(), producto.getStock() }));
+
 
 
     }
@@ -255,18 +243,16 @@ public class ControlDeStockFrame extends JFrame {
             return;
         }
 
-        // TODO
-        var producto = new HashMap<String, String>();
-        producto.put("NAME",textoNombre.getText());
-        producto.put("DESCRIPTION",textoDescripcion.getText());
-        producto.put("STOCK",String.valueOf(cantidadInt));
-        var categoria = comboCategoria.getSelectedItem();
+        var producto = new Producto(
+                textoNombre.getText(),
+                textoDescripcion.getText(),
+                cantidadInt);
 
-        try {
-            this.productoController.guardar(producto);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        //CONVERTIR a categoria el id
+        var categoria =(Categoria) comboCategoria.getSelectedItem();
+
+        this.productoController.guardar(producto, categoria.getId());
+
 
         JOptionPane.showMessageDialog(this, "Registrado con éxito!");
 

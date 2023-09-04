@@ -20,9 +20,12 @@ public class ConnectionFactory {
         this.datasource=pooleDataSourse;
     }
 
-    public Connection recuperaConexion() throws SQLException {
-        System.out.println("si funciona");
-        return this.datasource.getConnection();
+    public Connection recuperaConexion(){
+        try {
+            return this.datasource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }

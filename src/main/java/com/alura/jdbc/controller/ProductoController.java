@@ -1,6 +1,9 @@
 package com.alura.jdbc.controller;
 
 import com.alura.jdbc.factory.ConnectionFactory;
+import com.alura.jdbc.modelo.Categoria;
+import com.alura.jdbc.modelo.Producto;
+import com.alura.jdbc.DAO.ProductoDAO;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,8 +13,33 @@ import java.sql.*;
 import java.util.Map;
 
 public class ProductoController {
+	private ProductoDAO productodao;
 
-	public int modificar(String name, String descripcion,Integer stock,Integer id) throws SQLException {
+	public ProductoController() {
+		var factory = new ConnectionFactory();
+		this.productodao = new ProductoDAO(factory.recuperaConexion());
+	}
+
+	public int modificar(String name, String description, Integer stock, Integer id) {
+		return productodao.modificar(name, description, stock, id);
+	}
+	public int eliminar(Integer id){
+		return productodao.eliminar(id);
+	}
+	public List<Producto> listar(){
+		return productodao.listar();
+	}
+	public void guardar(Producto producto, Integer categoriaId){
+		producto.setCategoriaId(categoriaId);
+		productodao.guardar(producto);
+	}
+	public List<Producto> listar(Categoria categoria){
+		return productodao.listar(categoria);
+	}
+
+
+
+		/*
 		ConnectionFactory factory = new ConnectionFactory();
 		final Connection con = factory.recuperaConexion();
 		try(con){
@@ -50,92 +78,51 @@ public class ProductoController {
 	}
 
 	//para cargar los datos o listarlos usamos Map q nos listara
-	public List<Map<String, String>> listar() throws SQLException {
+	public List<Producto> listar(){
 		// primero pasamos a cargar la conexion con la base de datos
-		final Connection con = new ConnectionFactory().recuperaConexion();
+		return productodao.listar();
 		// crearemos los statement que son los q nos permiten crear consultas con la bases de datos
-		try(con){
-			final PreparedStatement statement = con.prepareStatement("SELECT ID, NAME, DESCRIPTION, STOCK FROM PRODUCTO");
-			// aca usamos execute para poder ejecutar la consulta de mostrar lo que hay en la tabla para poder visualizarla
-			try(statement){
-				statement.execute();
-				ResultSet resultSet = statement.getResultSet();
-
-				List<Map<String, String>> resultado=new ArrayList<>();
-				// iteramos para agregar los resultados que nos da el .next al Map osea cada fila de datos de nuestra base de datos
-				while (resultSet.next()) {
-					Map<String, String> fila = new HashMap<>();
-					fila.put("ID", String.valueOf(resultSet.getInt("ID")));
-					fila.put("NAME", resultSet.getString("NAME"));
-					fila.put("DESCRIPTION", resultSet.getString("DESCRIPTION"));
-					fila.put("STOCK", String.valueOf(resultSet.getInt("STOCK")));
-					resultado.add(fila);
-				}
-				return resultado;
 
 
-			}
-			// se remplaza por todo el try con.close();
-		}
 
 	}
 	//
 	//modificar el metodo guardar
 	//
-    public void guardar(Map<String, String> producto) throws SQLException {
+    /*
+     public void guardar(Map<String, String> producto) throws SQLException {
 		String nombre=producto.get("NAME");
 		String description=producto.get("DESCRIPTION");
 		Integer stock=Integer.valueOf(producto.get("STOCK"));
 		Integer maxStock=50;
+     */
+	//ahora pasaremos de usar el map a usar una clase dentro de java como el caso
+	// de usar producto creado directamente en java por lo que se tendran
+	// que cambiar varias partes del codigo como lo andabamos manejando
+	/*
+	public void guardar(Producto producto){
+		productodao.guardar(producto);
+	}
 
-		final Connection con = new ConnectionFactory().recuperaConexion();
-		//el uso de de la funcion setAutoCommit es para q si o si se agreguen los datos completos o no se agregue nada
-		// es como tomar el control de la jdbc uno mismo a la antigua
-
-		//y llamamos el try para que nos asegure de que la conexion se cerrara esto es de la version 9
-		try(con){
-			con.setAutoCommit(false);
-			//preparamos el statement
-			// y pasamos los ??? como los argumentos que se van a obtner para name, description y el stock
-			// para cerrar el statment hacemos lo mismo
-
-			final PreparedStatement statement= con.prepareStatement("INSERT INTO PRODUCTO (name, description, stock)"
-					+"VALUES(?,?,?)",Statement.RETURN_GENERATED_KEYS);
-			try(statement){
-					do {
-						int cant = Math.min(stock, maxStock);
-						ejecutarRegistro(statement, nombre, description, cant);
-						stock -= maxStock;
-
-					} while (stock > 0);
-					con.commit();
-				}catch (Exception e) {
-					// el rollback permite si hay un error captado en este caso por el try catch entonces se cierra la conexion y se cancela
-					con.rollback();
-				}
-			}
-		}
-
-	private static void ejecutarRegistro(PreparedStatement statement, String nombre, String description, Integer stock) throws SQLException {
-			if (stock<50){
-				throw new RuntimeException("error");
-			}
+	private static void ejecutarRegistro(Producto producto, PreparedStatement statement) throws SQLException {
 
 
-		statement.setString(1, nombre);
-		statement.setString(2, description);
-		statement.setInt(3, stock);
+
+		statement.setString(1, producto.getName());
+		statement.setString(2, producto.getDescription());
+		statement.setInt(3, producto.getStock());
 
 		statement.execute();
 
 		final ResultSet resultSet= statement.getGeneratedKeys();
 		try (resultSet){
 			while (resultSet.next()){
+				producto.setId(resultSet.getInt(1));
 				System.out.println(
-						String.format("Fue insertado el producto id %d", resultSet.getInt(1)));
+						String.format("Fue insertado el producto id %s", producto));
 			}
 		}
 
 	}
-
+	*/
 }
